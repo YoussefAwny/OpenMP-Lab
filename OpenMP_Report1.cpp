@@ -1,0 +1,48 @@
+// OpenMP_Report1.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <omp.h> 
+#include <stdio.h> 
+#include <stdlib.h>
+
+#define NRA 15000 /* number of rows in matrix A */ 
+#define NCA 15000 /* number of columns in matrix A */
+
+double ** create_2d_matrix(int columns, int rows) 
+{ double ** mat = new double*[rows]; 
+for (int i = 0; i < rows; i++) 
+{ 
+	mat[i] = new double[columns]; 
+} 
+return mat; 
+}
+
+
+int main() {
+	int i, j, k;
+	double **a = create_2d_matrix(NRA, NCA);
+	double time1 = omp_get_wtime();
+	double sum = 0.0;
+	for (i = 0; i < NRA; i++)
+		for (j = 0; j < NCA; j++)
+			a[i][j] = 1;
+
+	for (i = 0; i < NRA; i++)
+		for (j = 0; j < NCA; j++)
+			a[i][j] *= (i + j) % 13;
+
+
+	//#pragma omp parallel {
+//#pragma omp parallel for reduction (+:sum)
+	for (i = 0; i < NRA; i++){
+		for (j = 0; j < NCA; j++)
+			sum += a[i][j];
+	}
+//}
+
+double average = sum / (NRA*NCA); 
+printf("average = %6.2f, time = %6.2f", average, omp_get_wtime() - time1);
+return 0;
+}
+
