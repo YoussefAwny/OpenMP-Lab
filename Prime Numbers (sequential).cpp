@@ -36,6 +36,7 @@ int main()
 	double t2 = omp_get_wtime();
 	cout << Prime_Counter << " prime numbers" << endl;
 	cout << t2 - t1 << "seconds"<<endl;
+	cin >> int x;
     return 0;
 }
 
