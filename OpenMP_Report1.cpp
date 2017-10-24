@@ -1,5 +1,6 @@
 // OpenMP_Report1.cpp : Defines the entry point for the console application.
-//
+//sequential code -> average=6, time=2.89 seconds
+//parallel code average=6, time=2.54 seconds
 
 #include "stdafx.h"
 #include <omp.h> 
@@ -33,16 +34,20 @@ int main() {
 			a[i][j] *= (i + j) % 13;
 
 
-	//#pragma omp parallel {
-//#pragma omp parallel for reduction (+:sum)
-	for (i = 0; i < NRA; i++){
+	#pragma omp parallel 
+	{
+#pragma omp for reduction (+:sum)
+	for (i = 0; i < NRA; i++)
+	{	
+		#pragma omp parallel for num_threads(4) reduction(+:sum)
 		for (j = 0; j < NCA; j++)
 			sum += a[i][j];
 	}
-//}
+}
 
 double average = sum / (NRA*NCA); 
-printf("average = %6.2f, time = %6.2f", average, omp_get_wtime() - time1);
+printf("average = %6.2f, time = %6.2f", average, omp_get_wtime() - time1); getch();
 return 0;
+getchar();
 }
 
