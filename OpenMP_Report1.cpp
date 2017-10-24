@@ -34,16 +34,14 @@ int main() {
 			a[i][j] *= (i + j) % 13;
 
 
-	#pragma omp parallel 
-	{
-#pragma omp for reduction (+:sum)
+	 
+	
 	for (i = 0; i < NRA; i++)
 	{	
 		#pragma omp parallel for num_threads(4) reduction(+:sum)
 		for (j = 0; j < NCA; j++)
 			sum += a[i][j];
 	}
-}
 
 double average = sum / (NRA*NCA); 
 printf("average = %6.2f, time = %6.2f", average, omp_get_wtime() - time1); getch();
