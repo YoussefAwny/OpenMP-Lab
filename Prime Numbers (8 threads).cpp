@@ -45,6 +45,7 @@ int main()
 	cout << Prime_Counter << " prime numbers" << endl;
 	cout << t2 - t1 << "seconds"<<endl;
 
+	getchar();
     return 0;
 }
 

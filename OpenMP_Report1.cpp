@@ -1,51 +1,90 @@
-// OpenMP_Report1.cpp : Defines the entry point for the console application.
-//sequential code -> average=6, time=2.89 seconds
-//parallel code average=6, time=2.54 seconds
-
 #include "stdafx.h"
-#include <omp.h> 
-#include <stdio.h> 
-#include <stdlib.h>
+#include <iostream>
+#include <omp.h>
 
-#define NRA 15000 /* number of rows in matrix A */ 
-#define NCA 15000 /* number of columns in matrix A */
+#define NTHREADS 4
+#define NRA 1500
+#define NCA 1500
 
-double ** create_2d_matrix(int columns, int rows) 
-{ double ** mat = new double*[rows]; 
-for (int i = 0; i < rows; i++) 
-{ 
-	mat[i] = new double[columns]; 
-} 
-return mat; 
+
+using namespace std;
+double ** create_2d_matrix(int columns, int rows)
+{
+	double ** mat = new double *[rows];
+	for (int i = 0; i<rows; i++)
+	{
+		mat[i] = new double[columns];
+	}
+	
+	return mat;
 }
-
-
-int main() {
-	int i, j, k;
-	double **a = create_2d_matrix(NRA, NCA);
+int main()
+{
+	double average = 0;
+	int i, j;
 	double time1 = omp_get_wtime();
-	double sum = 0.0;
-	for (i = 0; i < NRA; i++)
+	int NRA_thr = NRA / NTHREADS;
+	int Nelements = NRA*NCA;
+
+#pragma omp parallel num_threads(NTHREADS) private(i,j)
+	{
+		double **a = create_2d_matrix(NCA, NRA_thr);
+		int id = omp_get_thread_num();
+
+		for (i = 0; i<NRA_thr; i++)
+			for (j = 0; j<NCA; j++)
+				a[i][j] = 1;
+
+		int i_Shift = NRA_thr * id;
+		for (i = 0; i<NRA_thr; i++)
+		{
+			for (j = 0; j<NCA; j++)
+			{
+				a[i][j] = (i + i_Shift + j) % 13;
+			}
+		}
+
+		double sum = 0;
+		for (i = 0; i<NRA_thr; i++)
+			for (j = 0; j<NCA; j++)
+				sum += a[i][j];
+
+#pragma omp critical
+		{
+			average += sum / Nelements;
+		}
+
+	}
+	cout << "<<<PARALLEL>>>" << endl;
+	cout << "average = " << average << endl;
+	cout << "Time= " << omp_get_wtime() - time1 << endl;
+
+	//SERIAL CODE
+		double time2 = omp_get_wtime();
+	double **a = create_2d_matrix(NRA, NCA);
+	double sum = 0;
+
+	for (i = 0; i < NRA; i++) {
 		for (j = 0; j < NCA; j++)
 			a[i][j] = 1;
+	}
 
-	for (i = 0; i < NRA; i++)
+	for (i = 0; i < NRA; i++) {
 		for (j = 0; j < NCA; j++)
 			a[i][j] *= (i + j) % 13;
-
-
-	 
+	}
 	
-	for (i = 0; i < NRA; i++)
-	{	
-		#pragma omp parallel for num_threads(4) reduction(+:sum)
+	for (i = 0; i < NRA; i++) {
 		for (j = 0; j < NCA; j++)
 			sum += a[i][j];
 	}
+	average = sum / (NRA*NCA);
 
-double average = sum / (NRA*NCA); 
-printf("average = %6.2f, time = %6.2f", average, omp_get_wtime() - time1); getch();
-return 0;
-getchar();
+	cout << "<<Sequential code>>" << endl;
+	cout << "average= " << average << endl;
+	cout << "Time= " << omp_get_wtime() - time2 << endl;
+	
+	system("pause");
+	return 0;
 }
 
